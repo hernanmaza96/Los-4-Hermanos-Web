@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Los 4 Hermanos - Gestión de Stock y Ventas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        h1 {
+            color: white; /* Letras blancas para que sobresalga sobre el fondo verde */
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-top: 0;
+        }
+        main {
+            padding: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .form-group input, .form-group select, .form-group datalist {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background-color: #f44336;
+        }
+        .btn-primary {
+            background-color: #008CBA;
+        }
+        .hidden {
+            display: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .end-of-day-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            font-size: 2rem;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>LOS 4 HERMANOS</h1>
+    <h2>Gestión de Stock y Ventas</h2>
+</header>
+
+<main>
+    <section id="product-form">
+        <h2>Agregar Producto</h2>
+        <div class="form-group">
+            <label for="product-name">Nombre del Producto:</label>
+            <input type="text" id="product-name">
+        </div>
+        <div class="form-group">
+            <label for="product-price">Precio (en ARS):</label>
+            <input type="number" id="product-price">
+        </div>
+        <div class="form-group">
+            <label for="product-stock">Cantidad en Stock:</label>
+            <input type="number" id="product-stock">
+        </div>
+        <div class="form-group">
+            <label for="product-code">Código del Producto (opcional):</label>
+            <input type="text" id="product-code">
+        </div>
+        <button class="btn" onclick="addProduct()">Agregar Producto</button>
+    </section>
+
+    <section id="stock-list">
+        <h2>Lista de Stock</h2>
+        <div class="form-group">
+            <label for="search-product">Buscar Producto:</label>
+            <input type="text" id="search-product" oninput="filterProducts()" placeholder="Buscar por nombre o código...">
+        </div>
+        <button class="btn" onclick="toggleStockList()">Mostrar/Ocultar Catálogo</button>
+        <table id="stock-table" class="hidden">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Precio (ARS)</th>
+                    <th>Stock</th>
+                    <th>Código</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="stock-table-body">
+                <!-- Aquí se cargarán los productos -->
+            </tbody>
+        </table>
+    </section>
+
+    <section id="sales-form">
+        <h2>Registrar Venta</h2>
+        <div class="form-group">
+            <label for="sale-product">Producto Vendido:</label>
+            <select id="sale-product">
+                <!-- Opciones de productos -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="sale-quantity">Cantidad Vendida:</label>
+            <input type="number" id="sale-quantity">
+        </div>
+        <div class="form-group">
+            <label for="buyer-name">Nombre del Comprador (opcional):</label>
+            <input list="buyer-names" id="buyer-name">
+            <datalist id="buyer-names">
+                <!-- Nombres de compradores sugeridos -->
+            </datalist>
+        </div>
+        <button class="btn" onclick="registerSale()">Registrar Venta</button>
+    </section>
+
+    <section id="sales-history">
+        <h2>Historial de Ventas</h2>
+        <button class="btn" onclick="toggleSalesHistory()">Mostrar/Ocultar Historial</button>
+        <table class="hidden" id="sales-history-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Comprador</th>
+                    <th>Fecha y Hora</th>
+                </tr>
+            </thead>
+            <tbody id="sales-history-body">
+                <!-- Aquí se cargarán las ventas -->
+            </tbody>
+        </table>
+    </section>
+
+    <section id="earnings">
+        <h2>Ganancias</h2>
+        <button class="btn" onclick="toggleEarnings()">Mostrar/Ocultar Ganancias</button>
+        <div id="earnings-details" class="hidden">
+            <div>
+                <h3>Diarias: <span id="daily-earnings">0</span> ARS</h3>
+                <button class="btn btn-danger" onclick="resetDailyEarnings()">Reiniciar Ganancias Diarias</button>
+            </div>
+            <div>
+                <h3>Mensuales: <span id="monthly-earnings">0</span> ARS</h3>
+                <button class="btn btn-danger" onclick="resetMonthlyEarnings()">Reiniciar Ganancias Mensuales</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="end-of-day">
+        <button class="btn btn-primary" onclick="endOfDay()">Finalizar Día de Trabajo</button>
+    </section>
+
+    <div id="end-of-day-message" class="end-of-day-message">
+        <h1>Mañana Será un gran día</h1>
+    </div>
+</main>
+
+<!-- Modal para editar producto -->
+<div id="edit-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Editar Producto</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="form-group">
+            <label for="edit-product-name">Nombre del Producto:</label>
+            <input type="text" id="edit-product-name">
+        </div>
+        <div class="form-group">
+            <label for="edit-product-price">Precio (en ARS):</label>
+            <input type="number" id="edit-product-price">
+        </div>
+        <div class="form-group">
+            <label for="edit-product-stock">Cantidad en Stock:</label>
+            <input type="number" id="edit-product-stock">
+        </div>
+        <div class="form-group">
+            <label for="edit-product-code">Código del Producto (opcional):</label>
+            <input type="text" id="edit-product-code">
+        </div>
+        <button class="btn" onclick="updateProduct()">Actualizar Producto</button>
+    </div>
+</div>
+
+<script>
+    let products = JSON.parse(localStorage.getItem('products')) || [];
+    let sales = [];
+    let dailyEarnings = 0;
+    let monthlyEarnings = 0;
+    let editIndex = -1;
+    let buyerNames = new Set();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateProductTable();
+        updateProductSelect();
+    });
+
+    function addProduct() {
+        const name = document.getElementById('product-name').value;
+        const price = parseFloat(document.getElementById('product-price').value);
+        const stock = parseInt(document.getElementById('product-stock').value);
+        const code = document.getElementById('product-code').value;
+
+        if (!name || isNaN(price) || isNaN(stock)) {
+            alert('Por favor, complete todos los campos obligatorios.');
+            return;
+        }
+
+        const product = { name, price, stock, code };
+        products.push(product);
+        updateProductTable();
+        updateProductSelect();
+        saveProductsToLocalStorage();
+
+        document.getElementById('product-name').value = '';
+        document.getElementById('product-price').value = '';
+        document.getElementById('product-stock').value = '';
+        document.getElementById('product-code').value = '';
+    }
+
+    function updateProductTable() {
+        const tbody = document.getElementById('stock-table-body');
+        tbody.innerHTML = '';
+        products.forEach((product, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${product.name}</td>
+                    <td>${product.price.toFixed(2)}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.code || ''}</td>
+                    <td>
+                        <button class="btn" onclick="openEditModal(${index})">Editar</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${index})">Eliminar</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function updateProductSelect() {
+        const select = document.getElementById('sale-product');
+        select.innerHTML = '';
+        products.forEach((product, index) => {
+            select.innerHTML += `<option value="${index}">${product.name}</option>`;
+        });
+    }
+
+    function openEditModal(index) {
+        const product = products[index];
+        document.getElementById('edit-product-name').value = product.name;
+        document.getElementById('edit-product-price').value = product.price;
+        document.getElementById('edit-product-stock').value = product.stock;
+        document.getElementById('edit-product-code').value = product.code;
+
+        // Actualizar el índice de edición y mostrar el modal
+        editIndex = index;
+        document.getElementById('edit-modal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('edit-modal').style.display = 'none';
+    }
+
+    function updateProduct() {
+        if (editIndex < 0) {
+            return;
+        }
+
+        const name = document.getElementById('edit-product-name').value;
+        const price = parseFloat(document.getElementById('edit-product-price').value);
+        const stock = parseInt(document.getElementById('edit-product-stock').value);
+        const code = document.getElementById('edit-product-code').value;
+
+        if (!name || isNaN(price) || isNaN(stock)) {
+            alert('Por favor, complete todos los campos obligatorios.');
+            return;
+        }
+
+        const product = { name, price, stock, code };
+        products[editIndex] = product;
+        updateProductTable();
+        updateProductSelect();
+        saveProductsToLocalStorage();
+
+        // Ocultar el modal y resetear el índice de edición
+        closeModal();
+        editIndex = -1;
+    }
+
+    function registerSale() {
+        const productIndex = document.getElementById('sale-product').value;
+        const quantity = parseInt(document.getElementById('sale-quantity').value);
+        const buyerName = document.getElementById('buyer-name').value;
+        const date = new Date().toLocaleString();
+
+        if (isNaN(quantity) || quantity <= 0) {
+            alert('Por favor, ingrese una cantidad válida.');
+            return;
+        }
+
+        if (quantity > products[productIndex].stock) {
+            alert('No hay suficiente stock para esta venta.');
+            return;
+        }
+
+        const sale = {
+            product: products[productIndex].name,
+            quantity,
+            buyerName,
+            date
+        };
+
+        sales.push(sale);
+        products[productIndex].stock -= quantity;
+        dailyEarnings += products[productIndex].price * quantity;
+        monthlyEarnings += products[productIndex].price * quantity;
+
+        // Eliminar producto si el stock es 0
+        if (products[productIndex].stock === 0) {
+            products.splice(productIndex, 1);
+        }
+
+        // Verificar si el stock es bajo (<= 3)
+        if (products[productIndex] && products[productIndex].stock <= 3) {
+            alert(`El producto "${products[productIndex].name}" tiene poco stock (quedan ${products[productIndex].stock} unidades).`);
+        }
+
+        updateProductTable();
+        updateSalesHistory();
+        updateEarnings();
+        updateProductSelect();
+        updateBuyerNames(buyerName);
+        saveProductsToLocalStorage();
+
+        document.getElementById('sale-quantity').value = '';
+        document.getElementById('buyer-name').value = '';
+    }
+
+    function deleteProduct(index) {
+        products.splice(index, 1);
+        updateProductTable();
+        updateProductSelect();
+        saveProductsToLocalStorage();
+    }
+
+    function updateSalesHistory() {
+        const tbody = document.getElementById('sales-history-body');
+        tbody.innerHTML = '';
+        sales.forEach(sale => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${sale.product}</td>
+                    <td>${sale.quantity}</td>
+                    <td>${sale.buyerName || ''}</td>
+                    <td>${sale.date}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function toggleSalesHistory() {
+        const table = document.getElementById('sales-history-table');
+        table.classList.toggle('hidden');
+    }
+
+    function toggleStockList() {
+        const table = document.getElementById('stock-table');
+        table.classList.toggle('hidden');
+    }
+
+    function toggleEarnings() {
+        const details = document.getElementById('earnings-details');
+        details.classList.toggle('hidden');
+    }
+
+    function filterProducts() {
+        const searchValue = document.getElementById('search-product').value.toLowerCase();
+        const filteredProducts = products.filter(product =>
+            product.name.toLowerCase().includes(searchValue) || 
+            (product.code && product.code.toLowerCase().includes(searchValue))
+        );
+        const tbody = document.getElementById('stock-table-body');
+        tbody.innerHTML = '';
+        filteredProducts.forEach((product, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${product.name}</td>
+                    <td>${product.price.toFixed(2)}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.code || ''}</td>
+                    <td>
+                        <button class="btn" onclick="openEditModal(${index})">Editar</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${index})">Eliminar</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function updateEarnings() {
+        document.getElementById('daily-earnings').textContent = dailyEarnings.toFixed(2);
+        document.getElementById('monthly-earnings').textContent = monthlyEarnings.toFixed(2);
+    }
+
+    function resetDailyEarnings() {
+        dailyEarnings = 0;
+        updateEarnings();
+    }
+
+    function resetMonthlyEarnings() {
+        monthlyEarnings = 0;
+        updateEarnings();
+    }
+
+    function endOfDay() {
+        sales = [];
+        updateSalesHistory();
+        const message = document.getElementById('end-of-day-message');
+        message.style.display = 'block';
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 3000);
+    }
+
+    function updateBuyerNames(buyerName) {
+        if (buyerName) {
+            buyerNames.add(buyerName);
+            const datalist = document.getElementById('buyer-names');
+            datalist.innerHTML = '';
+            buyerNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                datalist.appendChild(option);
+            });
+        }
+    }
+
+    function saveProductsToLocalStorage() {
+        localStorage.setItem('products', JSON.stringify(products));
+    }
+
+    setInterval(() => {
+        const now = new Date();
+        if (now.getHours() === 0 && now.getMinutes() === 0) {
+            resetDailyEarnings();
+            if (now.getDate() === new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()) {
+                resetMonthlyEarnings();
+            }
+        }
+    }, 60000);
+
+</script>
+
+</body>
+</html>
